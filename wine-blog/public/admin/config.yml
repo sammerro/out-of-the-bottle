@@ -1,0 +1,29 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: public/images
+public_folder: /images
+
+collections:
+  - name: posts
+    label: Blog Posts
+    folder: content/posts
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime }
+      - label: Category
+        name: category
+        widget: select
+        options:
+          - { label: Wine Review, value: wine-review }
+          - { label: Travel, value: travel }
+          - { label: Personal, value: personal }
+          - { label: Education, value: education }
+      - { label: Excerpt, name: excerpt, widget: text }
+      - { label: Cover Image, name: coverImage, widget: image }
+      - { label: Author, name: author, widget: string, default: "Kasia Nowak" }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Body, name: body, widget: markdown }

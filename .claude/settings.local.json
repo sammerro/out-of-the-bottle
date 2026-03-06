@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx nuxi@latest init wine-blog --no-install --package-manager npm)",
+      "Bash(printf 'N\\\\n')",
+      "Bash(npx nuxi@latest init wine-blog --template content --no-install --package-manager npm)",
+      "Bash(npm install)",
+      "Bash(npx nuxi typecheck)",
+      "Bash(npm install better-sqlite3)",
+      "Bash(npm run generate)"
+    ]
+  }
+}
