@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="`/blog/${post.stem?.split('/').pop()}`" class="card">
+  <NuxtLink :to="`/blog/${stemToSlug(post.stem)}`" class="card">
     <div class="card__image-wrap">
       <img
         v-if="post.coverImage"
@@ -10,7 +10,7 @@
       <div v-else class="card__image-placeholder" />
     </div>
     <div class="card__body">
-      <span class="card__category">{{ categoryLabel }}</span>
+      <span class="card__category">{{ label }}</span>
       <h2 class="card__title">{{ post.title }}</h2>
       <p class="card__excerpt">{{ post.excerpt }}</p>
       <time class="card__date">{{ formattedDate }}</time>
@@ -30,19 +30,8 @@ const props = defineProps<{
   }
 }>()
 
-const categoryMap: Record<string, string> = {
-  'wine-review': 'Wine Review',
-  travel: 'Travel',
-  personal: 'Personal',
-  education: 'Education',
-}
-
-const categoryLabel = computed(() => categoryMap[props.post.category] ?? props.post.category)
-
-const formattedDate = computed(() => {
-  const d = new Date(props.post.date)
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-})
+const label = computed(() => categoryLabel(props.post.category))
+const formattedDate = computed(() => formatDate(props.post.date))
 </script>
 
 <style scoped>

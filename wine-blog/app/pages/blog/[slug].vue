@@ -1,47 +1,40 @@
 <template>
-  <div>
-    <article v-if="post" class="container">
-      <!-- Cover image -->
-      <div v-if="post.coverImage" class="cover">
-        <img :src="post.coverImage" :alt="post.title" class="cover__img" />
-      </div>
-
-      <!-- Header -->
-      <header class="post-header">
-        <span class="category-badge">{{ categoryLabel }}</span>
-        <h1 class="post-title">{{ post.title }}</h1>
-        <div class="post-meta">
-          <time>{{ formattedDate }}</time>
-          <span class="separator">·</span>
-          <span>{{ post.author }}</span>
-        </div>
-      </header>
-
-      <!-- Body -->
-      <div class="post-body">
-        <ContentRenderer :value="post" />
-      </div>
-
-      <!-- Prev / Next navigation -->
-      <nav class="post-nav">
-        <NuxtLink v-if="prevPost" :to="`/blog/${prevPost.stem?.split('/').pop()}`" class="post-nav__link post-nav__link--prev">
-          <span class="post-nav__label">← Previous</span>
-          <span class="post-nav__title">{{ prevPost.title }}</span>
-        </NuxtLink>
-        <div v-else />
-        <NuxtLink v-if="nextPost" :to="`/blog/${nextPost.stem?.split('/').pop()}`" class="post-nav__link post-nav__link--next">
-          <span class="post-nav__label">Next →</span>
-          <span class="post-nav__title">{{ nextPost.title }}</span>
-        </NuxtLink>
-        <div v-else />
-      </nav>
-    </article>
-
-    <div v-else class="container not-found">
-      <p>Post not found.</p>
-      <NuxtLink to="/blog">← Back to blog</NuxtLink>
+  <article class="container">
+    <!-- Cover image -->
+    <div v-if="post.coverImage" class="cover">
+      <img :src="post.coverImage" :alt="post.title" class="cover__img" />
     </div>
-  </div>
+
+    <!-- Header -->
+    <header class="post-header">
+      <span class="category-badge">{{ label }}</span>
+      <h1 class="post-title">{{ post.title }}</h1>
+      <div class="post-meta">
+        <time>{{ formattedDate }}</time>
+        <span class="separator">·</span>
+        <span>{{ post.author }}</span>
+      </div>
+    </header>
+
+    <!-- Body -->
+    <div class="post-body">
+      <ContentRenderer :value="post" />
+    </div>
+
+    <!-- Prev / Next navigation -->
+    <nav class="post-nav">
+      <NuxtLink v-if="prevPost" :to="`/blog/${stemToSlug(prevPost.stem)}`" class="post-nav__link post-nav__link--prev">
+        <span class="post-nav__label">← Previous</span>
+        <span class="post-nav__title">{{ prevPost.title }}</span>
+      </NuxtLink>
+      <div v-else />
+      <NuxtLink v-if="nextPost" :to="`/blog/${stemToSlug(nextPost.stem)}`" class="post-nav__link post-nav__link--next">
+        <span class="post-nav__label">Next →</span>
+        <span class="post-nav__title">{{ nextPost.title }}</span>
+      </NuxtLink>
+      <div v-else />
+    </nav>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -56,7 +49,6 @@ if (!post.value) {
   throw createError({ statusCode: 404, message: 'Post not found' })
 }
 
-// All posts for prev/next navigation
 const { data: allPosts } = await useAsyncData('all-posts-nav', () =>
   queryCollection('posts')
     .where('draft', '=', false)
@@ -65,40 +57,23 @@ const { data: allPosts } = await useAsyncData('all-posts-nav', () =>
 )
 
 const currentIndex = computed(() =>
-  allPosts.value?.findIndex((p) => p.stem?.split('/').pop() === slug) ?? -1
+  allPosts.value?.findIndex((p) => stemToSlug(p.stem) === slug) ?? -1
 )
 const prevPost = computed(() =>
-  currentIndex.value > 0 ? allPosts.value![currentIndex.value - 1] : null
+  allPosts.value && currentIndex.value > 0 ? allPosts.value[currentIndex.value - 1] : null
 )
 const nextPost = computed(() =>
-  currentIndex.value < (allPosts.value?.length ?? 0) - 1
-    ? allPosts.value![currentIndex.value + 1]
+  allPosts.value && currentIndex.value < allPosts.value.length - 1
+    ? allPosts.value[currentIndex.value + 1]
     : null
 )
 
-const categoryMap: Record<string, string> = {
-  'wine-review': 'Wine Review',
-  travel: 'Travel',
-  personal: 'Personal',
-  education: 'Education',
-}
-
-const categoryLabel = computed(() =>
-  post.value ? (categoryMap[post.value.category] ?? post.value.category) : ''
-)
-
-const formattedDate = computed(() => {
-  if (!post.value) return ''
-  return new Date(post.value.date).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-})
+const label = computed(() => categoryLabel(post.value!.category))
+const formattedDate = computed(() => formatDate(post.value!.date))
 
 useSeoMeta({
-  title: post.value?.title,
-  description: post.value?.excerpt,
+  title: () => post.value?.title,
+  description: () => post.value?.excerpt,
 })
 </script>
 
@@ -107,6 +82,7 @@ useSeoMeta({
   max-width: 760px;
   margin: 0 auto;
   padding: 3rem 1.5rem 5rem;
+  display: block;
 }
 
 .cover {
@@ -236,16 +212,5 @@ useSeoMeta({
 
 .post-nav__link:hover .post-nav__title {
   opacity: 0.7;
-}
-
-.not-found {
-  text-align: center;
-  padding-top: 5rem;
-  font-family: var(--font-body);
-  color: var(--color-muted);
-}
-
-.not-found a {
-  color: var(--color-accent);
 }
 </style>
